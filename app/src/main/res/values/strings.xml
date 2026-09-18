@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Barcode Wallet</string>
+    <string name="add_barcode">Add barcode</string>
+    <string name="barcode_name_hint">Name (e.g. Gym, Supermarket)</string>
+    <string name="barcode_value_hint">Barcode value</string>
+    <string name="save">Save</string>
+    <string name="scan">Scan</string>
+    <string name="type_manually">Type manually</string>
+    <string name="delete">Delete</string>
+    <string name="confirm_delete">Hold to delete</string>
+    <string name="no_barcodes">No barcodes yet. Tap + to add one.</string>
+    <string name="camera_permission_required">Camera permission is required to scan barcodes.</string>
+</resources>

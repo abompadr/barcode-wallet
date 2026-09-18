@@ -82,8 +82,8 @@ private fun BarcodeCard(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    val bitmap: Bitmap? = remember(item.value) {
-        BarcodeRenderer.render(item.value, 600, 150)
+    val bitmap: Bitmap? = remember(item.value, item.format) {
+        BarcodeRenderer.render(item.value, item.format, 600, 150)
     }
 
     Card(

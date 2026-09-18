@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class BarcodeItem(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
-    val value: String
+    val value: String,
+    val format: String = "CODE_128"
 )

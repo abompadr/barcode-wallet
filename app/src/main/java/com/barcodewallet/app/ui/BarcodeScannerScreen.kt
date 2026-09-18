@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 @OptIn(ExperimentalGetImage::class)
 @androidx.compose.runtime.Composable
-fun BarcodeScannerScreen(onScanned: (String) -> Unit, onBack: () -> Unit) {
+fun BarcodeScannerScreen(onScanned: (value: String, format: String) -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val executor = remember { Executors.newSingleThreadExecutor() }
@@ -63,9 +63,12 @@ fun BarcodeScannerScreen(onScanned: (String) -> Unit, onBack: () -> Unit) {
                             )
                             scanner.process(image)
                                 .addOnSuccessListener { barcodes ->
-                                    barcodes.firstOrNull()?.rawValue?.let { value ->
-                                        if (scanned.compareAndSet(false, true)) {
-                                            onScanned(value)
+                                    barcodes.firstOrNull()?.let { barcode ->
+                                        barcode.rawValue?.let { value ->
+                                            if (scanned.compareAndSet(false, true)) {
+                                                val format = mlKitFormatToZxing(barcode.format)
+                                                onScanned(value, format)
+                                            }
                                         }
                                     }
                                 }
@@ -101,4 +104,20 @@ fun BarcodeScannerScreen(onScanned: (String) -> Unit, onBack: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge
         )
     }
+}
+
+private fun mlKitFormatToZxing(format: Int): String = when (format) {
+    Barcode.FORMAT_CODE_128   -> "CODE_128"
+    Barcode.FORMAT_CODE_39    -> "CODE_39"
+    Barcode.FORMAT_CODE_93    -> "CODE_93"
+    Barcode.FORMAT_EAN_8      -> "EAN_8"
+    Barcode.FORMAT_EAN_13     -> "EAN_13"
+    Barcode.FORMAT_UPC_A      -> "UPC_A"
+    Barcode.FORMAT_UPC_E      -> "UPC_E"
+    Barcode.FORMAT_QR_CODE    -> "QR_CODE"
+    Barcode.FORMAT_PDF417     -> "PDF_417"
+    Barcode.FORMAT_AZTEC      -> "AZTEC"
+    Barcode.FORMAT_DATA_MATRIX -> "DATA_MATRIX"
+    Barcode.FORMAT_ITF        -> "ITF"
+    else                      -> "CODE_128"
 }

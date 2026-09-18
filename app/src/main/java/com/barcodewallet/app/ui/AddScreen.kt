@@ -23,6 +23,7 @@ fun AddScreen(
 ) {
     var name by remember { mutableStateOf("") }
     var value by remember { mutableStateOf("") }
+    var format by remember { mutableStateOf("CODE_128") }
     var showScanner by remember { mutableStateOf(false) }
     var hasCameraPermission by remember { mutableStateOf(false) }
 
@@ -32,8 +33,9 @@ fun AddScreen(
 
     if (showScanner && hasCameraPermission) {
         BarcodeScannerScreen(
-            onScanned = { scanned ->
+            onScanned = { scanned, detectedFormat ->
                 value = scanned
+                format = detectedFormat
                 showScanner = false
             },
             onBack = { showScanner = false }
@@ -86,7 +88,7 @@ fun AddScreen(
                 Button(
                     onClick = {
                         if (name.isNotBlank() && value.isNotBlank()) {
-                            viewModel.add(name, value)
+                            viewModel.add(name, value, format)
                             onBack()
                         }
                     },

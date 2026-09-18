@@ -32,8 +32,8 @@ fun DisplayScreen(item: BarcodeItem, onBack: () -> Unit) {
         }
     }
 
-    val bitmap: Bitmap? = remember(item.value) {
-        BarcodeRenderer.render(item.value, 900, 300)
+    val bitmap: Bitmap? = remember(item.value, item.format) {
+        BarcodeRenderer.render(item.value, item.format, 900, 300)
     }
 
     Scaffold(

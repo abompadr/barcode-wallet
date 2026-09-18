@@ -18,9 +18,9 @@ class BarcodeViewModel(app: Application) : AndroidViewModel(app) {
         initialValue = emptyList()
     )
 
-    fun add(name: String, value: String) {
+    fun add(name: String, value: String, format: String = "CODE_128") {
         viewModelScope.launch {
-            dao.insert(BarcodeItem(name = name.trim(), value = value.trim()))
+            dao.insert(BarcodeItem(name = name.trim(), value = value.trim(), format = format))
         }
     }
 

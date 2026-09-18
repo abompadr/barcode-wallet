@@ -24,6 +24,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 @OptIn(ExperimentalGetImage::class)
 @androidx.compose.runtime.Composable
@@ -31,12 +32,12 @@ fun BarcodeScannerScreen(onScanned: (String) -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val executor = remember { Executors.newSingleThreadExecutor() }
-    var scanned by remember { mutableStateOf(false) }
+    val scanned = remember { AtomicBoolean(false) }
 
     val scanner = remember {
         BarcodeScanning.getClient(
             BarcodeScannerOptions.Builder()
-                .setBarcodeFormats(Barcode.FORMAT_CODE_128, Barcode.FORMAT_ALL_FORMATS)
+                .setBarcodeFormats(Barcode.FORMAT_ALL_FORMATS)
                 .build()
         )
     }
@@ -56,15 +57,16 @@ fun BarcodeScannerScreen(onScanned: (String) -> Unit, onBack: () -> Unit) {
                         .build()
                     analysis.setAnalyzer(executor) { imageProxy ->
                         val mediaImage = imageProxy.image
-                        if (mediaImage != null && !scanned) {
+                        if (mediaImage != null && !scanned.get()) {
                             val image = InputImage.fromMediaImage(
                                 mediaImage, imageProxy.imageInfo.rotationDegrees
                             )
                             scanner.process(image)
                                 .addOnSuccessListener { barcodes ->
                                     barcodes.firstOrNull()?.rawValue?.let { value ->
-                                        scanned = true
-                                        onScanned(value)
+                                        if (scanned.compareAndSet(false, true)) {
+                                            onScanned(value)
+                                        }
                                     }
                                 }
                                 .addOnCompleteListener { imageProxy.close() }

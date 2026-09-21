@@ -6,14 +6,11 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.barcodewallet.app.R
@@ -25,7 +22,8 @@ import com.barcodewallet.app.util.BarcodeRenderer
 fun HomeScreen(
     viewModel: MainViewModel,
     onAdd: () -> Unit,
-    onDisplay: (BarcodeItem) -> Unit
+    onDisplay: (BarcodeItem) -> Unit,
+    outerPadding: PaddingValues = PaddingValues()
 ) {
     val barcodes by viewModel.barcodes.collectAsState()
     var pendingDelete by remember { mutableStateOf<BarcodeItem?>(null) }
@@ -47,22 +45,26 @@ fun HomeScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_barcode))
-            }
-        }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) }
     ) { padding ->
+        val combinedPadding = PaddingValues(
+            top = padding.calculateTopPadding(),
+            bottom = maxOf(padding.calculateBottomPadding(), outerPadding.calculateBottomPadding()),
+            start = padding.calculateLeftPadding(androidx.compose.ui.unit.LayoutDirection.Ltr),
+            end = padding.calculateRightPadding(androidx.compose.ui.unit.LayoutDirection.Ltr)
+        )
         if (barcodes.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier.fillMaxSize().padding(combinedPadding),
                 contentAlignment = Alignment.Center
             ) {
                 Text(stringResource(R.string.no_barcodes), style = MaterialTheme.typography.bodyLarge)
             }
         } else {
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(combinedPadding),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
                 items(barcodes, key = { it.id }) { item ->
                     BarcodeCard(
                         item = item,

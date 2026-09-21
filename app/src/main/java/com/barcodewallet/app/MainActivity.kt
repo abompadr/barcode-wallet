@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.*
@@ -44,11 +45,11 @@ private fun BarcodeWalletApp(vm: MainViewModel = viewModel()) {
     var barcodeScreen by remember { mutableStateOf<BarcodeScreen>(BarcodeScreen.Home) }
     var documentScreen by remember { mutableStateOf<DocumentScreen>(DocumentScreen.List) }
 
-    val showBottomBar = barcodeScreen is BarcodeScreen.Home && documentScreen is DocumentScreen.List
+    val onHomeScreens = barcodeScreen is BarcodeScreen.Home && documentScreen is DocumentScreen.List
 
     Scaffold(
         bottomBar = {
-            if (showBottomBar) {
+            if (onHomeScreens) {
                 NavigationBar {
                     NavigationBarItem(
                         selected = selectedTab == 0,
@@ -64,14 +65,25 @@ private fun BarcodeWalletApp(vm: MainViewModel = viewModel()) {
                     )
                 }
             }
+        },
+        floatingActionButton = {
+            if (onHomeScreens) {
+                FloatingActionButton(onClick = {
+                    if (selectedTab == 0) barcodeScreen = BarcodeScreen.Add
+                    else documentScreen = DocumentScreen.Add
+                }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add")
+                }
+            }
         }
-    ) { _ ->
+    ) { padding ->
         when (selectedTab) {
             0 -> when (val s = barcodeScreen) {
                 is BarcodeScreen.Home -> HomeScreen(
                     viewModel = vm,
                     onAdd = { barcodeScreen = BarcodeScreen.Add },
-                    onDisplay = { barcodeScreen = BarcodeScreen.Display(it) }
+                    onDisplay = { barcodeScreen = BarcodeScreen.Display(it) },
+                    outerPadding = padding
                 )
                 is BarcodeScreen.Add -> AddScreen(
                     viewModel = vm,
@@ -85,8 +97,8 @@ private fun BarcodeWalletApp(vm: MainViewModel = viewModel()) {
             1 -> when (val s = documentScreen) {
                 is DocumentScreen.List -> DocumentsScreen(
                     viewModel = vm,
-                    onAdd = { documentScreen = DocumentScreen.Add },
-                    onOpen = { documentScreen = DocumentScreen.View(it) }
+                    onOpen = { documentScreen = DocumentScreen.View(it) },
+                    outerPadding = padding
                 )
                 is DocumentScreen.Add -> AddDocumentScreen(
                     viewModel = vm,

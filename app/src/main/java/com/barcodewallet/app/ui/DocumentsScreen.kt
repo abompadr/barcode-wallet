@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.*
@@ -23,8 +22,8 @@ import com.barcodewallet.app.data.PdfItem
 @Composable
 fun DocumentsScreen(
     viewModel: MainViewModel,
-    onAdd: () -> Unit,
-    onOpen: (PdfItem) -> Unit
+    onOpen: (PdfItem) -> Unit,
+    outerPadding: PaddingValues = PaddingValues()
 ) {
     val pdfs by viewModel.pdfs.collectAsState()
     val isUnlocked by viewModel.isUnlocked.collectAsState()
@@ -117,16 +116,13 @@ fun DocumentsScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.documents)) }) },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_document))
-            }
-        }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.documents)) }) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(bottom = 80.dp)
+            contentPadding = PaddingValues(
+                bottom = maxOf(80.dp, outerPadding.calculateBottomPadding())
+            )
         ) {
             // ── Unprotected section ───────────────────────────────────────────
             if (unprotected.isNotEmpty()) {

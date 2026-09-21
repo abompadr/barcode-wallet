@@ -10,4 +10,21 @@
     <string name="confirm_delete">Hold to delete</string>
     <string name="no_barcodes">No barcodes yet. Tap + to add one.</string>
     <string name="camera_permission_required">Camera permission is required to scan barcodes.</string>
+    <string name="documents">Documents</string>
+    <string name="documents_section">Documents</string>
+    <string name="add_document">Add document</string>
+    <string name="no_documents">No documents yet. Tap + to add one.</string>
+    <string name="no_protected_documents">No protected documents yet.</string>
+    <string name="protected_section">Protected</string>
+    <string name="unlock">Unlock</string>
+    <string name="lock">Lock</string>
+    <string name="tap_to_unlock">Tap to unlock protected documents</string>
+    <string name="enter_password">Enter password</string>
+    <string name="set_password">Set password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="wrong_password">Incorrect password</string>
+    <string name="choose_pdf">Choose PDF</string>
+    <string name="protect_with_password">Protect with password</string>
+    <string name="rename">Rename</string>
+    <string name="document_name_hint">Document name (e.g. Insurance Card)</string>
 </resources>

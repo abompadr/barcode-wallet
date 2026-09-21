@@ -18,7 +18,7 @@ import com.barcodewallet.app.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddScreen(
-    viewModel: BarcodeViewModel,
+    viewModel: MainViewModel,
     onBack: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
@@ -88,7 +88,7 @@ fun AddScreen(
                 Button(
                     onClick = {
                         if (name.isNotBlank() && value.isNotBlank()) {
-                            viewModel.add(name, value, format)
+                            viewModel.addBarcode(name, value, format)
                             onBack()
                         }
                     },

@@ -13,8 +13,8 @@ android {
         applicationId = "com.barcodewallet.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
     }
 
     signingConfigs {
@@ -68,6 +68,9 @@ dependencies {
 
     // ZXing barcode rendering
     implementation(libs.zxing.core)
+
+    // Encrypted SharedPreferences for password hash
+    implementation(libs.androidx.security.crypto)
 
     debugImplementation(libs.androidx.ui.tooling)
 }

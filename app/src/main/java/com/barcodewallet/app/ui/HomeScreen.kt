@@ -23,7 +23,7 @@ import com.barcodewallet.app.util.BarcodeRenderer
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
-    viewModel: BarcodeViewModel,
+    viewModel: MainViewModel,
     onAdd: () -> Unit,
     onDisplay: (BarcodeItem) -> Unit
 ) {
@@ -36,7 +36,7 @@ fun HomeScreen(
             title = { Text("Delete \"${item.name}\"?") },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.delete(item)
+                    viewModel.deleteBarcode(item)
                     pendingDelete = null
                 }) { Text("Delete") }
             },

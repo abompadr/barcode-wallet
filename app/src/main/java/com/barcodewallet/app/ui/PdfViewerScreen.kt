@@ -3,12 +3,14 @@ package com.barcodewallet.app.ui
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -16,8 +18,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import com.barcodewallet.app.data.PdfItem
@@ -42,18 +46,16 @@ fun PdfViewerScreen(item: PdfItem, onBack: () -> Unit) {
         renderPdfPages(item.filePath)
     }
 
-    // Shared zoom state for all pages
     var scale by remember { mutableFloatStateOf(1f) }
-    var offsetX by remember { mutableFloatStateOf(0f) }
-
-    val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
-        scale = (scale * zoomChange).coerceIn(1f, 5f)
-        if (scale > 1f) {
-            offsetX += panChange.x
-        } else {
-            offsetX = 0f
-        }
+    // Shared horizontal scroll state — reset when scale changes
+    val hScrollState = rememberScrollState()
+    LaunchedEffect(scale) {
+        if (scale == 1f) hScrollState.scrollTo(0)
     }
+
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+    val density = LocalDensity.current
+    val screenWidthPx = with(density) { screenWidthDp.toPx() }
 
     Scaffold(
         topBar = {
@@ -75,35 +77,44 @@ fun PdfViewerScreen(item: PdfItem, onBack: () -> Unit) {
                 Text("Cannot display this PDF.")
             }
         } else {
-            LazyColumn(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    // transformable on the list so pinch is captured here but vertical
-                    // scroll gestures are still handled by LazyColumn normally
-                    .transformable(transformableState)
                     .pointerInput(Unit) {
-                        detectTapGestures(onDoubleTap = {
-                            scale = 1f
-                            offsetX = 0f
-                        })
-                    },
-                contentPadding = PaddingValues(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                        awaitEachGesture {
+                            awaitFirstDown(requireUnconsumed = false)
+                            do {
+                                val event = awaitPointerEvent()
+                                if (event.changes.size >= 2) {
+                                    val zoom = event.calculateZoom()
+                                    scale = (scale * zoom).coerceIn(1f, 5f)
+                                    event.changes.forEach { it.consume() }
+                                }
+                            } while (event.changes.any { it.pressed })
+                        }
+                    }
             ) {
-                itemsIndexed(pages) { _, bmp ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Image(
-                            bitmap = bmp.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .graphicsLayer(
-                                    scaleX = scale,
-                                    scaleY = scale,
-                                    translationX = offsetX
-                                )
-                        )
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .horizontalScroll(hScrollState),
+                    contentPadding = PaddingValues(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(pages) { _, bmp ->
+                        val scaledWidth = screenWidthDp * scale
+                        val aspectRatio = bmp.width.toFloat() / bmp.height.toFloat()
+                        Card(modifier = Modifier.width(scaledWidth)) {
+                            Image(
+                                bitmap = bmp.asImageBitmap(),
+                                contentDescription = null,
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier
+                                    .width(scaledWidth)
+                                    .aspectRatio(aspectRatio)
+                            )
+                        }
                     }
                 }
             }

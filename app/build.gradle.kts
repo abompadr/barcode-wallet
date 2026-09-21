@@ -72,5 +72,8 @@ dependencies {
     // Encrypted SharedPreferences for password hash
     implementation(libs.androidx.security.crypto)
 
+    // Extended Material Icons (QrCode, Description, etc.)
+    implementation(libs.androidx.material.icons.extended)
+
     debugImplementation(libs.androidx.ui.tooling)
 }

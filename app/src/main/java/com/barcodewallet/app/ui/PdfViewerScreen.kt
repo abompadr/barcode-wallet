@@ -15,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -43,6 +42,19 @@ fun PdfViewerScreen(item: PdfItem, onBack: () -> Unit) {
         renderPdfPages(item.filePath)
     }
 
+    // Shared zoom state for all pages
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+
+    val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
+        scale = (scale * zoomChange).coerceIn(1f, 5f)
+        if (scale > 1f) {
+            offsetX += panChange.x
+        } else {
+            offsetX = 0f
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -64,53 +76,38 @@ fun PdfViewerScreen(item: PdfItem, onBack: () -> Unit) {
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    // transformable on the list so pinch is captured here but vertical
+                    // scroll gestures are still handled by LazyColumn normally
+                    .transformable(transformableState)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onDoubleTap = {
+                            scale = 1f
+                            offsetX = 0f
+                        })
+                    },
                 contentPadding = PaddingValues(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 itemsIndexed(pages) { _, bmp ->
-                    ZoomablePdfPage(bmp)
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Image(
+                            bitmap = bmp.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .graphicsLayer(
+                                    scaleX = scale,
+                                    scaleY = scale,
+                                    translationX = offsetX
+                                )
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ZoomablePdfPage(bmp: Bitmap) {
-    var scale by remember { mutableFloatStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-
-    val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
-        scale = (scale * zoomChange).coerceIn(1f, 5f)
-        // Only allow panning when zoomed in
-        if (scale > 1f) {
-            offset += panChange
-        } else {
-            offset = Offset.Zero
-        }
-    }
-
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Image(
-            bitmap = bmp.asImageBitmap(),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .transformable(transformableState)
-                .pointerInput(Unit) {
-                    detectTapGestures(onDoubleTap = {
-                        scale = 1f
-                        offset = Offset.Zero
-                    })
-                }
-                .graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = offset.x,
-                    translationY = offset.y
-                )
-        )
     }
 }
 

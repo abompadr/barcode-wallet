@@ -13,7 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import com.barcodewallet.app.R
 import com.barcodewallet.app.data.PdfItem
@@ -296,6 +298,7 @@ private fun UnlockDialog(
                     onValueChange = { password = it; error = false },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrect = false),
                     label = { Text(stringResource(R.string.enter_password)) },
                     isError = error
                 )
@@ -338,6 +341,7 @@ private fun SetPasswordDialog(
                     onValueChange = { password = it; error = "" },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrect = false),
                     label = { Text(stringResource(R.string.set_password)) }
                 )
                 OutlinedTextField(
@@ -345,6 +349,7 @@ private fun SetPasswordDialog(
                     onValueChange = { confirm = it; error = "" },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrect = false),
                     label = { Text(stringResource(R.string.confirm_password)) },
                     isError = error.isNotEmpty()
                 )

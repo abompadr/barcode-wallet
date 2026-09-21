@@ -3,6 +3,9 @@ package com.barcodewallet.app.ui
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -12,7 +15,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import com.barcodewallet.app.data.PdfItem
@@ -63,16 +69,48 @@ fun PdfViewerScreen(item: PdfItem, onBack: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 itemsIndexed(pages) { _, bmp ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Image(
-                            bitmap = bmp.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
+                    ZoomablePdfPage(bmp)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ZoomablePdfPage(bmp: Bitmap) {
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
+        scale = (scale * zoomChange).coerceIn(1f, 5f)
+        // Only allow panning when zoomed in
+        if (scale > 1f) {
+            offset += panChange
+        } else {
+            offset = Offset.Zero
+        }
+    }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Image(
+            bitmap = bmp.asImageBitmap(),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .transformable(transformableState)
+                .pointerInput(Unit) {
+                    detectTapGestures(onDoubleTap = {
+                        scale = 1f
+                        offset = Offset.Zero
+                    })
+                }
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+                    translationX = offset.x,
+                    translationY = offset.y
+                )
+        )
     }
 }
 

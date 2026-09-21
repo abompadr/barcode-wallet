@@ -30,7 +30,12 @@ fun AddDocumentScreen(
     ) { uri ->
         if (uri != null) {
             selectedUri = uri
-            selectedFileName = uri.lastPathSegment?.substringAfterLast('/') ?: "document.pdf"
+            val rawName = uri.lastPathSegment?.substringAfterLast('/') ?: "document.pdf"
+            selectedFileName = rawName
+            // Pre-fill name from filename (strip .pdf extension) if user hasn't typed one yet
+            if (name.isBlank()) {
+                name = rawName.removeSuffix(".pdf")
+            }
         }
     }
 
@@ -68,16 +73,28 @@ fun AddDocumentScreen(
                 Text(if (selectedUri == null) stringResource(R.string.choose_pdf) else selectedFileName)
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    stringResource(R.string.protect_with_password),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Switch(checked = isProtected, onCheckedChange = { isProtected = it })
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        stringResource(R.string.protect_with_password),
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Switch(checked = isProtected, onCheckedChange = { isProtected = it })
+                }
+                if (isProtected) {
+                    Text(
+                        "This document will be stored in the protected section. " +
+                            "A password is required to view it. " +
+                            "If you haven't set a password yet, you will be asked to create one " +
+                            "the first time you open the protected section.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             Button(
